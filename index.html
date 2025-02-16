@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pet the Cat</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chewy&display=swap" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+            background-color: #131e3a;
+            font-family: "Chewy", serif;
+            font-weight: 400;
+            color: white;
+        }
+        #cat {
+            width: 300px;
+            height: 300px;
+            background-image: url('/assets/yamato.jpg');
+            background-size: cover;
+            border: 5px solid #1134a6;
+            border-radius: 50%;
+        }
+        #message {
+            margin-top: 20px;
+            font-size: 1.5em;
+        }
+        #counter {
+            margin-top: 10px;
+            font-size: 1.2em;
+            color: yellow;
+        }
+        #global-counter {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 1.2em;
+            color: yellow;
+        }
+        #heart-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Permite clicar nos elementos abaixo do contêiner de corações */
+        }
+        .heart {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-image: url('./assets/Heart_Shape_PNG_Clipart-3166.png'); /* URL da imagem do coração */
+            background-size: contain; /* Ajusta o tamanho da imagem para caber no coração */
+            background-repeat: no-repeat; /* Não repete a imagem */
+            background-position: center; /* Centraliza a imagem no contêiner */
+            animation: rise 2s linear forwards;
+        }
+        @keyframes rise {
+            from {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateY(-200px);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="heart-container"></div>
+    <div id="global-counter">🌍 Total de carinhos feitos pelo mundo: 0</div>
+    <div id="cat"></div>
+    <div id="message">Clique para fazer carinho no Yamato!</div>
+    <div id="counter">🖤 0 carinhos feitos agora :( </div>
+    
+
+    <script>
+        const cat = document.getElementById('cat');
+        const message = document.getElementById('message');
+        const counter = document.getElementById('counter');
+        const globalCounter = document.getElementById('global-counter');
+        const heartContainer = document.getElementById('heart-container');
+        let petCount = 0;
+
+        function updateCounter() {
+            fetch('http://localhost:8080/count')
+                .then(response => response.json())
+                .then(data => {
+                    globalCounter.textContent = `🌍 Total de carinhos feitos pelo mundo: ${data.count}`;
+                });
+        }
+
+        cat.addEventListener('click', () => {
+            petCount++;
+            message.textContent = 'Você fez carinho no Yamato :3';
+            counter.textContent = `❤️ ${petCount} carinhos feitos agora :)`;
+
+            fetch('http://localhost:8080/pet', { method: 'POST' })
+                .then(() => {
+                    setTimeout(() => {
+                        message.textContent = 'Clique para fazer carinho no Yamato :)';
+                    }, 1500);
+                    updateCounter();
+                });
+
+            createHeart(event.clientX, event.clientY); // Cria um coração ao clicar
+        });
+
+        function createHeart(x, y) {
+            const heart = document.createElement('div');
+            heart.classList.add('heart');
+            heart.style.left = `${x - 15}px`; // Ajusta a posição horizontal para centralizar no clique
+            heart.style.top = `${y - 15}px`; // Ajusta a posição vertical para centralizar no clique
+            heartContainer.appendChild(heart);
+
+            setTimeout(() => {
+                heart.remove(); // Remove o coração após a animação
+            }, 2000);
+        }
+
+        // Atualizar o contador global na inicialização
+        updateCounter();
+    </script>
+</body>
+</html>
